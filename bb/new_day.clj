@@ -1,6 +1,7 @@
 (ns new-day
   (:require
    [babashka.fs :as fs]
+   [babashka.curl :as curl]
    [clojure.string :as str]))
 
 (defn new-day
@@ -12,13 +13,16 @@
         new-day (str "day" day)
         day01 (slurp (fs/file "src" "aoc22" "day01.cljc"))
         replaced (str/replace day01 "aoc22" new-year)
-        replaced (str/replace replaced "day01" new-day)]
+        replaced (str/replace replaced "day01" new-day)
+        token (slurp ".cookie")]
     (fs/create-dirs "src" new-year)
     (fs/create-dirs "resources" new-year)
-    (let [new-day-resource (fs/file "resources" new-year (str new-day ".txt"))]
+    (let [new-day-filename (format "day%s.txt" day)
+          new-day-resource (fs/file "resources" new-year new-day-filename)
+          url (format "https://adventofcode.com/%s/day/%s/input" year day)
+          resp (curl/get url {:headers {"Cookie" (str "session=" (or token (System/getenv "AOC_TOKEN")))}})]
       (if-not (fs/exists? new-day-resource)
-        (fs/copy (fs/file "resources" "aoc22" "day01.txt")
-                 new-day-resource)
+        (spit new-day-resource (:body resp))
         (println (format "Day %s/%s resource already exists." new-year new-day))))
     (let [new-day (fs/file "src" new-year (str new-day ".cljc"))]
       (if-not (fs/exists? new-day)
