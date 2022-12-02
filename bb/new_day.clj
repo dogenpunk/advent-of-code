@@ -17,9 +17,9 @@
         token (slurp ".cookie")]
     (fs/create-dirs "src" new-year)
     (fs/create-dirs "resources" new-year)
-    (let [new-day-filename (format "day%s.txt" day)
+    (let [new-day-filename (format "day%02d.txt" (parse-long day))
           new-day-resource (fs/file "resources" new-year new-day-filename)
-          url (format "https://adventofcode.com/%s/day/%s/input" year day)
+          url (format "https://adventofcode.com/%d/day/%d/input" (+ 2000 (parse-long year)) (parse-long day))
           resp (curl/get url {:headers {"Cookie" (str "session=" (or token (System/getenv "AOC_TOKEN")))}})]
       (if-not (fs/exists? new-day-resource)
         (spit new-day-resource (:body resp))
