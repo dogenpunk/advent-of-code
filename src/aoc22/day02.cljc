@@ -9,7 +9,8 @@
    (def input (->> "aoc22/day02.txt"
                    io/resource
                    slurp
-                   str/split-lines))
+                   str/split-lines
+                   (map #(str/split % #" "))))
    :cljs
    (def input (await (p/->> (slurp "resources/aoc22/day02.txt")
                             (str/split-lines)
@@ -20,15 +21,27 @@
    "B" :paper
    "C" :scissors})
 
+(defn get-elf-move
+  [[move _]]
+  (get elf-moves move))
+
 (def my-moves
   {"X" :rock
    "Y" :paper
    "Z" :scissors})
 
+(defn get-my-move
+  [[_ move]]
+  (get my-moves move))
+
 (def desired-outcome
   {"X" :lose
    "Y" :draw
    "Z" :win})
+
+(defn get-desired-outcome
+  [[_ outcome]]
+  (get desired-outcome outcome))
 
 (def rules
   {:rock :scissors
@@ -60,11 +73,11 @@
   [[elf me]]
   (cond
     ;; Elf wins
-    (= (get rules elf) me) [(+ (get points elf) (get points :win)) (+ (get points me) (get points :lose))]
+    (= (get rules elf) me) (+ (get points me) (get points :lose))
     ;; I win
-    (= (get rules me) elf) [(+ (get points elf) (get points :lose)) (+ (get points me) (get points :win))]
+    (= (get rules me) elf) (+ (get points me) (get points :win))
     ;; Draw
-    :else [(+ (get points elf) (get points :draw)) (+ (get points me) (get points :draw))]))
+    :else (+ (get points me) (get points :draw))))
 
 (defn score-round-2
   [round]
@@ -76,20 +89,20 @@
   "Run with (n)bb -x aoc22.day02/part-1"
   [_]
   (->> input
-       (map #(str/split % #" "))
-       (map (fn [[elf me]] [(get elf-moves elf)
-                            (get my-moves  me)]))
+       (map (juxt get-elf-move get-my-move))
        (map score-round-1)
-       (reduce (fn [memo [_ me]] (+ memo me)) 0)
+       (apply +)
        prn))
 
 (defn part-2
   "Run with (n)bb -x aoc22.day02/part-2"
   [_]
   (->> input
-       (map #(str/split % #" "))
-       (map (fn [[elf me]] [(get elf-moves elf)
-                            (get desired-outcome me)]))
+       (map (juxt get-elf-move get-desired-outcome))
        (map score-round-2)
        (apply +)
        prn))
+
+(comment
+  (part-1 nil)
+  (part-2 nil))
