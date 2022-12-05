@@ -18,7 +18,6 @@
 (defn parse-row
   [row]
   (re-seq #"[\[\]A-Z ]{3}\s?" row))
-(->> input (take 8) (map parse-row))
 
 (defn transpose
   [m]
@@ -42,26 +41,20 @@
 (defn process-move-9001
   [crates {:keys [amt from to]}]
   (-> crates
-      (update to concat  (take-last amt (get crates from)))
+      (update to concat (take-last amt (get crates from)))
       (update from #(drop-last amt %))))
 
-(defn rebalance-cargo-9000
-  [input]
+(defn rebalance-cargo
+  [rebalancer input]
   (let [crates  (->> input (take 8) (map parse-row) transpose (map reverse) (map #(remove str/blank? %)) (into (vector)))
         moves (->> input (drop 9) rest (map parse-move))]
-    (reduce process-move-9000 crates moves)))
-
-(defn rebalance-cargo-9001
-  [input]
-  (let [crates  (->> input (take 8) (map parse-row) transpose (map reverse) (map #(remove str/blank? %)) (into (vector)))
-        moves (->> input (drop 9) rest (map parse-move))]
-    (reduce process-move-9001 crates moves)))
+    (reduce rebalancer crates moves)))
 
 (defn part-1
   "Run with (n)bb -x aoc22.day05/part-1"
   [_]
   (->> input
-       rebalance-cargo-9000
+       (rebalance-cargo process-move-9000)
        (map last)
        (map #(re-find #"[A-Z]{1}" %))
        str/join
@@ -71,7 +64,7 @@
   "Run with (n)bb -x aoc22.day05/part-2"
   [_]
   (->> input
-       rebalance-cargo-9001
+       (rebalance-cargo process-move-9001)
        (map last)
        (map #(re-find #"[A-Z]{1}" %))
        str/join
